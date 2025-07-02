@@ -9,27 +9,31 @@ interface SignUpButtonProps {
 export const SignUpButton: React.FC<SignUpButtonProps> = ({ className }) => {
   const { instance } = useMsal();
 
-  const handleSignUp = () => {
-    // For Azure External Identity, sign-up can be handled in several ways:
-    // 1. Using the same login flow with 'prompt: create'
-    // 2. Using a dedicated sign-up user flow
-    // 3. Using custom registration endpoints
-    
-    instance.loginPopup(registrationRequest)
-      .then((response) => {
-        console.log('Registration successful:', response);
-      })
-      .catch((e) => {
-        console.error('Registration failed:', e);
-        // Handle registration-specific errors
-        if (e.errorMessage?.includes('AADB2C90118')) {
-          // User cancelled the flow
-          console.log('User cancelled registration');
-        } else if (e.errorMessage?.includes('AADB2C90091')) {
-          // User clicked "Forgot Password" during registration
-          console.log('User requested password reset during registration');
+  const handleSignUp = async () => {
+    try {
+      console.log('📝 Starting registration popup...');
+      
+      const response = await instance.loginPopup(registrationRequest);
+      console.log('✅ Registration successful:', response);
+      
+    } catch (error: any) {
+      console.error('❌ Registration failed:', error);
+      
+      // Handle registration-specific errors
+      if (error.errorCode === 'user_cancelled') {
+        console.log('ℹ️ User cancelled registration');
+      } else if (error.errorCode === 'popup_window_error') {
+        console.error('Popup window error during registration...');
+        // Fallback to redirect if popup fails
+        try {
+          await instance.loginRedirect(registrationRequest);
+        } catch (redirectError) {
+          console.error('❌ Redirect registration also failed:', redirectError);
         }
-      });
+      } else {
+        alert(`Registration failed: ${error.errorMessage || error.message}`);
+      }
+    }
   };
 
   return (

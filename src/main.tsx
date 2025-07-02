@@ -9,12 +9,30 @@ import App from './App.tsx'
 
 const msalInstance = new PublicClientApplication(msalConfig);
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <AuthErrorBoundary>
-      <MsalProvider instance={msalInstance}>
-        <App />
-      </MsalProvider>
-    </AuthErrorBoundary>
-  </StrictMode>,
-)
+// Initialize MSAL and handle redirects
+const initializeMsal = async () => {
+  try {
+    await msalInstance.initialize();
+    
+    // Handle redirects for popup authentication
+    // This is crucial for popup flow to work correctly
+    await msalInstance.handleRedirectPromise();
+    
+    console.log('✅ MSAL initialized successfully');
+  } catch (error) {
+    console.error('❌ MSAL initialization failed:', error);
+  }
+};
+
+// Initialize MSAL before rendering
+initializeMsal().then(() => {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <AuthErrorBoundary>
+        <MsalProvider instance={msalInstance}>
+          <App />
+        </MsalProvider>
+      </AuthErrorBoundary>
+    </StrictMode>,
+  );
+});

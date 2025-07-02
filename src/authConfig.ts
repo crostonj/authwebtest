@@ -52,6 +52,7 @@ export const msalConfig: Configuration = {
     authority: import.meta.env.VITE_AZURE_AUTHORITY || 'https://crostonext1.ciamlogin.com/crostonext1.onmicrosoft.com', // Azure External Identity authority
     redirectUri: getRedirectUri(), // Must be registered as a redirect URI with your application
     postLogoutRedirectUri: getRedirectUri(), // Must be registered as a redirect URI with your application
+    navigateToLoginRequestUrl: false, // Important: Prevent navigation to login request URL in popup
   },
   cache: {
     cacheLocation: 'sessionStorage', // Configures cache location. "sessionStorage" is more secure, but "localStorage" gives you SSO between tabs.
@@ -89,7 +90,9 @@ export const msalConfig: Configuration = {
  * This ensures only Azure External Identity authentication is used
  */
 export const loginRequest = {
-  scopes: ['openid', 'profile', 'email']
+  scopes: ['openid', 'profile', 'email'],
+  // Use dedicated popup redirect page
+  redirectUri: typeof window !== 'undefined' ? `${window.location.origin}/popup-redirect.html` : undefined,
 };
 
 /**
@@ -98,7 +101,9 @@ export const loginRequest = {
  */
 export const registrationRequest = {
   scopes: ['openid', 'profile', 'email'],
-  prompt: 'create' as const // Forces the registration/sign-up flow
+  prompt: 'create' as const, // Forces the registration/sign-up flow
+  // Use dedicated popup redirect page
+  redirectUri: typeof window !== 'undefined' ? `${window.location.origin}/popup-redirect.html` : undefined,
 };
 
 /**
